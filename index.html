@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>CNX — Master Command</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#04060a;--s1:#080d12;--s2:#0c1219;--s3:#101820;
+  --b1:#162030;--b2:#1c2c40;
+  --ac:#00c8f0;--ag:rgba(0,200,240,.13);--ag2:rgba(0,200,240,.06);
+  --go:#f0a500;--gd:rgba(240,165,0,.12);
+  --gn:#00d968;--gr:rgba(0,217,104,.1);
+  --rd:#ff3d5a;--rr:rgba(255,61,90,.1);
+  --pu:#9d6fff;--pr:rgba(157,111,255,.1);
+  --or:#ff6a2a;--pi:#ff6eb4;
+  --t1:#d8e4f0;--t2:#5f7a90;--t3:#2d3f52;
+  --mn:'Space Mono',monospace;--sf:'DM Sans',sans-serif;
+  --rad:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);font-family:var(--sf);font-size:14px;min-height:100vh;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,200,240,.002) 3px,rgba(0,200,240,.002) 4px);pointer-events:none;z-index:9000}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+
+/* ── HEADER ── */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--b1);background:rgba(4,6,10,.97);backdrop-filter:blur(24px);position:sticky;top:0;z-index:500}
+.logo{font-family:var(--mn);font-size:20px;font-weight:700;color:var(--ac);letter-spacing:6px;text-shadow:0 0 28px rgba(0,200,240,.4)}
+.logo-sub{font-family:var(--mn);font-size:8px;letter-spacing:3px;color:var(--t3);margin-top:1px}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--gn);box-shadow:0 0 8px rgba(0,217,104,.7);display:inline-block;animation:blink 2s ease infinite;margin-right:6px;vertical-align:middle}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.hdr-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hdr-tag{font-family:var(--mn);font-size:8px;color:var(--go);background:var(--gd);border:1px solid rgba(240,165,0,.3);padding:3px 9px;border-radius:3px;letter-spacing:1px}
+.hdr-clock{font-family:var(--mn);font-size:9px;color:var(--t2);letter-spacing:.5px}
+.sync-dot{font-family:var(--mn);font-size:8px;letter-spacing:.5px;padding:3px 8px;border-radius:3px;transition:all .3s}
+.sync-dot.syncing{color:var(--go);background:var(--gd);border:1px solid rgba(240,165,0,.2)}
+.sync-dot.synced{color:var(--gn);background:var(--gr);border:1px solid rgba(0,217,104,.2)}
+.sync-dot.error{color:var(--rd);background:var(--rr);border:1px solid rgba(255,61,90,.2)}
+
+/* ── TAB NAV ── */
+.tab-nav{display:flex;gap:0;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:55px;z-index:400;overflow-x:auto}
+.tab-nav::-webkit-scrollbar{height:2px}
+.tnav-btn{font-family:var(--mn);font-size:8px;letter-spacing:1.5px;padding:11px 20px;background:none;border:none;border-bottom:2px solid transparent;color:var(--t3);cursor:pointer;transition:all .2s;white-space:nowrap;text-transform:uppercase}
+.tnav-btn:hover{color:var(--t2)}
+.tnav-btn.active{color:var(--ac);border-bottom-color:var(--ac)}
+.tnav-btn.discipline-btn.active{color:var(--pi);border-bottom-color:var(--pi)}
+
+.tab-panel{display:none;padding:20px 24px;max-width:1440px;margin:0 auto;animation:fadeIn .2s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SECTION TITLE ── */
+.sec-t{font-family:var(--mn);font-size:8px;font-weight:700;color:var(--t3);letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.sec-t::before{content:'';width:16px;height:1px;background:var(--b2)}
+.sec-t::after{content:'';flex:1;height:1px;background:var(--b1)}
+
+/* ── VITALS ── */
+.vitals{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:24px}
+.vital{background:var(--s1);border:1px solid var(--b1);border-top:2px solid;border-radius:8px;padding:12px 14px;position:relative;overflow:hidden;cursor:default;transition:border-color .2s}
+.vital::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top left,rgba(255,255,255,.015),transparent 70%);pointer-events:none}
+.vital.ac{border-top-color:var(--ac)}.vital.go{border-top-color:var(--go)}.vital.gn{border-top-color:var(--gn)}.vital.rd{border-top-color:var(--rd)}.vital.pu{border-top-color:var(--pu)}.vital.pi{border-top-color:var(--pi)}
+.vital-lbl{font-family:var(--mn);font-size:7px;color:var(--t3);letter-spacing:1.5px;margin-bottom:6px}
+.vital-val{font-family:var(--mn);font-size:16px;font-weight:700;line-height:1}
+.vital.ac .vital-val{color:var(--ac)}.vital.go .vital-val{color:var(--go)}.vital.gn .vital-val{color:var(--gn)}.vital.rd .vital-val{color:var(--rd)}.vital.pu .vital-val{color:var(--pu)}.vital.pi .vital-val{color:var(--pi)}
+.vital-sub{font-size:9px;color:var(--t2);margin-top:4px}
+.vbar{height:3px;background:var(--s3);border-radius:2px;overflow:hidden;margin-top:8px}
+.vbarf{height:100%;border-radius:2px;transition:width 1s ease}
+.vital-live{position:absolute;top:8px;right:10px;font-family:var(--mn);font-size:7px;color:var(--gn);letter-spacing:.5px;opacity:.7}
+
+/* ── APP CARDS ── */
+.top-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.bot-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.single-row{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:24px}
+
+.app-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rad);overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,transform .15s,box-shadow .2s}
+.app-card:hover{border-color:var(--b2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.app-head{padding:16px 18px 13px;border-bottom:1px solid var(--b1)}
+.app-badge{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.app-icon-row{display:flex;align-items:center;gap:9px}
+.app-emoji{font-size:20px}
+.app-name{font-family:var(--mn);font-size:11px;font-weight:700;color:var(--t1);letter-spacing:.8px}
+.app-sub{font-size:9px;color:var(--t3);margin-top:1px;font-family:var(--mn)}
+.status-pill{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:3px;font-family:var(--mn);font-size:7px;letter-spacing:.8px;flex-shrink:0}
+.status-pill.live{background:rgba(0,217,104,.1);border:1px solid rgba(0,217,104,.2);color:var(--gn)}
+.status-pill.build{background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.2);color:var(--go)}
+.status-pill.legal{background:rgba(157,111,255,.1);border:1px solid rgba(157,111,255,.2);color:var(--pu)}
+.status-pill .sd{width:5px;height:5px;border-radius:50%;background:currentColor}
+.status-pill.live .sd{box-shadow:0 0 6px var(--gn)}
+.status-pill.legal .sd{animation:blink 1.5s ease infinite}
+.app-desc{font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:8px}
+
+.app-rows{}
+.arow{display:flex;align-items:center;gap:8px;padding:7px 18px;border-bottom:1px solid rgba(22,32,48,.6)}
+.arow:last-child{border-bottom:none}
+.arow-l{flex:1;font-size:10px;color:var(--t2)}
+.arow-v{font-family:var(--mn);font-size:10px;font-weight:700}
+.arow-bar{flex:0 0 60px;height:3px;background:var(--s3);border-radius:2px;overflow:hidden}
+.arow-fill{height:100%;border-radius:2px;transition:width 1.2s ease}
+
+.app-launch{display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 18px;background:none;border:none;border-top:1px solid var(--b1);color:var(--t3);font-family:var(--mn);font-size:8px;letter-spacing:1px;cursor:pointer;text-decoration:none;transition:all .2s;flex-shrink:0}
+.app-card.ac .app-launch:hover{background:var(--ag2);color:var(--ac)}
+.app-card.go .app-launch:hover{background:var(--gd);color:var(--go)}
+.app-card.gn .app-launch:hover{background:var(--gr);color:var(--gn)}
+.app-card.rd .app-launch:hover{background:var(--rr);color:var(--rd)}
+.app-card.pu .app-launch:hover{background:var(--pr);color:var(--pu)}
+.app-card.pi .app-launch:hover{background:rgba(255,110,180,.07);color:var(--pi)}
+.arr{transition:transform .2s}
+.app-launch:hover .arr{transform:translate(3px,-2px)}
+
+/* Live progress ring on card */
+.live-ring{position:relative;width:28px;height:28px;flex-shrink:0}
+.live-ring svg{transform:rotate(-90deg)}
+.live-ring circle{fill:none;stroke-width:3;stroke-linecap:round}
+.live-ring .rtrack{stroke:var(--b2)}
+.live-ring .rfill{transition:stroke-dashoffset 1.2s ease}
+.ring-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mn);font-size:6px;font-weight:700}
+
+/* ── BOTTOM PANELS ── */
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+.panel{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rad);padding:16px 18px}
+.panel-t{font-family:var(--mn);font-size:8px;color:var(--t3);letter-spacing:2px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+
+/* ── LOG ── */
+.log-inp-row{display:flex;gap:7px;margin-bottom:11px}
+.log-inp{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:7px 10px;color:var(--t1);font-family:var(--sf);font-size:12px;outline:none;transition:border-color .2s}
+.log-inp:focus{border-color:var(--ac)}
+.log-inp::placeholder{color:var(--t3)}
+.log-sel{background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:7px 9px;color:var(--t2);font-family:var(--mn);font-size:9px;outline:none;cursor:pointer}
+.log-btn{background:var(--ag2);border:1px solid rgba(0,200,240,.2);color:var(--ac);font-family:var(--mn);font-size:9px;padding:7px 12px;border-radius:5px;cursor:pointer;letter-spacing:.4px;transition:background .2s}
+.log-btn:hover{background:var(--ag)}
+.log-entry{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(22,32,48,.5)}
+.log-entry:last-child{border-bottom:none}
+.log-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.log-body{flex:1}
+.log-sys-lbl{font-family:var(--mn);font-size:7px;letter-spacing:1px;margin-bottom:2px}
+.log-txt{font-size:11px;color:var(--t2);line-height:1.4}
+.log-time{font-family:var(--mn);font-size:8px;color:var(--t3);flex-shrink:0;margin-top:2px}
+.log-del{background:none;border:none;color:var(--t3);cursor:pointer;font-size:10px;padding:2px 4px;transition:color .2s}
+.log-del:hover{color:var(--rd)}
+.log-list{max-height:290px;overflow-y:auto}
+.log-empty{padding:14px 0;text-align:center;font-family:var(--mn);font-size:9px;color:var(--t3);letter-spacing:1px}
+
+/* ── QUICK LAUNCH ── */
+.ql-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.ql{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:11px 13px;text-decoration:none;display:flex;align-items:center;gap:10px;transition:border-color .2s,transform .1s}
+.ql:hover{transform:translateY(-1px)}
+.ql.ac:hover{border-color:rgba(0,200,240,.3)}.ql.go:hover{border-color:rgba(240,165,0,.3)}.ql.gn:hover{border-color:rgba(0,217,104,.3)}.ql.rd:hover{border-color:rgba(255,61,90,.3)}.ql.pu:hover{border-color:rgba(157,111,255,.3)}.ql.pi:hover{border-color:rgba(255,110,180,.3)}
+.ql-icon{font-size:18px;flex-shrink:0}
+.ql-name{font-family:var(--mn);font-size:9px;letter-spacing:.5px;margin-bottom:1px}
+.ql.ac .ql-name{color:var(--ac)}.ql.go .ql-name{color:var(--go)}.ql.gn .ql-name{color:var(--gn)}.ql.rd .ql-name{color:var(--rd)}.ql.pu .ql-name{color:var(--pu)}.ql.pi .ql-name{color:var(--pi)}
+.ql-sub{font-size:9px;color:var(--t3)}
+.ql-wide{grid-column:span 2}
+
+.brief{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:13px}
+.brief-t{font-family:var(--mn);font-size:7px;color:var(--t3);letter-spacing:1.5px;margin-bottom:8px}
+.brief-row{font-size:11px;color:var(--t2);line-height:2}
+
+/* ── DISCIPLINE TAB ── */
+.disc-hero{background:linear-gradient(135deg,rgba(255,110,180,.06),rgba(157,111,255,.06));border:1px solid rgba(255,110,180,.15);border-radius:12px;padding:20px 24px;margin-bottom:20px;position:relative;overflow:hidden}
+.disc-hero::before{content:'DISCIPLINE';position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-family:var(--mn);font-size:72px;font-weight:700;color:rgba(255,110,180,.04);letter-spacing:-2px;pointer-events:none}
+.disc-hero-title{font-family:var(--mn);font-size:11px;font-weight:700;color:var(--pi);letter-spacing:3px;margin-bottom:6px}
+.disc-hero-sub{font-size:12px;color:var(--t2);line-height:1.6}
+
+.disc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.disc-card{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:16px;position:relative;overflow:hidden}
+.disc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.disc-card.warn::before{background:var(--go)}
+.disc-card.good::before{background:var(--gn)}
+.disc-card.info::before{background:var(--ac)}
+.disc-card.crit::before{background:var(--rd)}
+.disc-card.neutral::before{background:var(--pu)}
+.disc-card-icon{font-size:22px;margin-bottom:8px}
+.disc-card-title{font-family:var(--mn);font-size:9px;font-weight:700;letter-spacing:1px;margin-bottom:6px}
+.disc-card.warn .disc-card-title{color:var(--go)}
+.disc-card.good .disc-card-title{color:var(--gn)}
+.disc-card.info .disc-card-title{color:var(--ac)}
+.disc-card.crit .disc-card-title{color:var(--rd)}
+.disc-card.neutral .disc-card-title{color:var(--pu)}
+.disc-card-body{font-size:11px;color:var(--t2);line-height:1.7}
+
+.disc-radar{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:20px;margin-bottom:20px}
+.disc-radar-title{font-family:var(--mn);font-size:8px;color:var(--t3);letter-spacing:2px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.radar-row{display:grid;grid-template-columns:130px 1fr 50px 60px;gap:10px;align-items:center;margin-bottom:10px}
+.radar-label{font-family:var(--mn);font-size:9px;color:var(--t2)}
+.radar-bar-wrap{background:var(--s3);border-radius:3px;height:6px;overflow:hidden;position:relative}
+.radar-fill{height:100%;border-radius:3px;transition:width 1.4s ease}
+.radar-pct{font-family:var(--mn);font-size:9px;text-align:right}
+.radar-status{font-family:var(--mn);font-size:7px;padding:2px 6px;border-radius:3px;text-align:center;letter-spacing:.5px}
+.rs-live{background:rgba(0,217,104,.1);color:var(--gn)}
+.rs-build{background:rgba(240,165,0,.1);color:var(--go)}
+.rs-legal{background:rgba(157,111,255,.1);color:var(--pu)}
+.rs-paused{background:rgba(255,61,90,.1);color:var(--rd)}
+
+.disc-signals{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.signal-panel{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:16px}
+.signal-title{font-family:var(--mn);font-size:8px;color:var(--t3);letter-spacing:2px;margin-bottom:12px}
+.signal-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(22,32,48,.5);align-items:flex-start}
+.signal-item:last-child{border-bottom:none}
+.sig-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.sig-body{flex:1}
+.sig-label{font-family:var(--mn);font-size:8px;letter-spacing:.5px;margin-bottom:2px}
+.sig-text{font-size:10px;color:var(--t2);line-height:1.5}
+.sig-tag{display:inline-block;font-family:var(--mn);font-size:7px;padding:1px 5px;border-radius:2px;margin-top:3px}
+.tag-gn{background:rgba(0,217,104,.1);color:var(--gn)}
+.tag-go{background:rgba(240,165,0,.1);color:var(--go)}
+.tag-rd{background:rgba(255,61,90,.1);color:var(--rd)}
+.tag-ac{background:rgba(0,200,240,.1);color:var(--ac)}
+.tag-pu{background:rgba(157,111,255,.1);color:var(--pu)}
+.tag-pi{background:rgba(255,110,180,.1);color:var(--pi)}
+
+.disc-summary{background:linear-gradient(135deg,rgba(0,200,240,.04),rgba(157,111,255,.04));border:1px solid var(--b1);border-radius:10px;padding:18px 20px}
+.disc-summary-title{font-family:var(--mn);font-size:8px;color:var(--t3);letter-spacing:2px;margin-bottom:14px}
+.disc-stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.disc-stat{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:10px 14px;flex:1;min-width:100px;text-align:center}
+.disc-stat-val{font-family:var(--mn);font-size:18px;font-weight:700;margin-bottom:2px}
+.disc-stat-lbl{font-family:var(--mn);font-size:7px;color:var(--t3);letter-spacing:1px}
+.disc-insight{font-size:11px;color:var(--t2);line-height:1.8;padding:10px 14px;background:var(--s2);border-radius:7px;border-left:2px solid var(--pi)}
+
+/* ── FOOTER ── */
+.footer{border-top:1px solid var(--b1);padding-top:13px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:20px;margin-top:8px}
+.footer-l{font-family:var(--mn);font-size:8px;color:var(--t3);letter-spacing:1.5px}
+.footer-links{display:flex;gap:6px;flex-wrap:wrap}
+.footer-links a{font-family:var(--mn);font-size:8px;color:var(--t3);text-decoration:none;padding:3px 8px;border:1px solid var(--b1);border-radius:3px;transition:color .2s,border-color .2s}
+.footer-links a:hover{color:var(--ac);border-color:rgba(0,200,240,.3)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){.vitals{grid-template-columns:repeat(3,1fr)}.bot-grid{grid-template-columns:1fr 1fr}.disc-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){.vitals{grid-template-columns:1fr 1fr}.top-grid,.bot-grid,.bottom-grid,.disc-signals{grid-template-columns:1fr}.disc-grid{grid-template-columns:1fr}.tab-panel{padding:14px}.disc-radar .radar-row{grid-template-columns:100px 1fr 40px 50px}}
+@media(max-width:480px){.vitals{grid-template-columns:1fr 1fr}.ql-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="hdr">
+  <div>
+    <div class="logo"><span class="pulse"></span>CNX</div>
+    <div class="logo-sub">MASTER COMMAND · 2026</div>
+  </div>
+  <div class="hdr-r">
+    <div class="hdr-tag">6 SYSTEMS ACTIVE</div>
+    <div class="sync-dot syncing" id="syncBadge">◌ CONNECTING</div>
+    <div class="hdr-clock" id="clock">—</div>
+  </div>
+</div>
+
+<!-- ── TAB NAV ── -->
+<div class="tab-nav">
+  <button class="tnav-btn active" onclick="switchTab('systems',this)">▸ SYSTEMS</button>
+  <button class="tnav-btn discipline-btn" onclick="switchTab('discipline',this)">◈ DISCIPLINE</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     TAB: SYSTEMS
+══════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-systems">
+
+  <!-- VITALS ROW -->
+  <div class="sec-t" style="margin-top:4px">Live Vitals</div>
+  <div class="vitals">
+    <div class="vital ac">
+      <div class="vital-lbl">FINANCE OS</div>
+      <div class="vital-val">₹1.4L</div>
+      <div class="vital-sub">Apr–Dec 2026 · v3</div>
+      <div class="vbar"><div class="vbarf" style="width:11%;background:var(--ac)"></div></div>
+      <div class="vital-live">LIVE</div>
+    </div>
+    <div class="vital go">
+      <div class="vital-lbl">BLOG OS</div>
+      <div class="vital-val">6 tabs</div>
+      <div class="vital-sub">Content + LinkedIn AI</div>
+      <div class="vbar"><div class="vbarf" style="width:0%;background:var(--go)" id="blog-vbar"></div></div>
+    </div>
+    <div class="vital gn">
+      <div class="vital-lbl">PERS.EVOL</div>
+      <div class="vital-val">119d</div>
+      <div class="vital-sub">Apr 18 – Aug 15 sprint</div>
+      <div class="vbar"><div class="vbarf" style="background:var(--gn)" id="evol-vbar"></div></div>
+      <div class="vital-live">LIVE</div>
+    </div>
+    <div class="vital rd">
+      <div class="vital-lbl">RIXTRACE</div>
+      <div class="vital-val">80 tasks</div>
+      <div class="vital-sub">CNIS v3 · 8 phases</div>
+      <div class="vbar"><div class="vbarf" style="width:30%;background:var(--rd)"></div></div>
+    </div>
+    <div class="vital pu">
+      <div class="vital-lbl">SA UPSKILL</div>
+      <div class="vital-val">139</div>
+      <div class="vital-sub">topics · 60-day sprint</div>
+      <div class="vbar"><div class="vbarf" style="background:var(--pu)" id="sa-vbar"></div></div>
+      <div class="vital-live">LIVE</div>
+    </div>
+    <div class="vital pi">
+      <div class="vital-lbl">OPC TRACKER</div>
+      <div class="vital-val" id="opc-vital-val">—%</div>
+      <div class="vital-sub" id="opc-vital-sub">Loading from Supabase…</div>
+      <div class="vbar"><div class="vbarf" style="width:0%;background:var(--pi)" id="opc-vbar"></div></div>
+      <div class="vital-live" id="opc-live-tag">SYNC</div>
+    </div>
+  </div>
+
+  <!-- SYSTEM CARDS -->
+  <div class="sec-t">Systems</div>
+  <div class="top-grid">
+
+    <div class="app-card ac">
+      <div class="app-head">
+        <div class="app-badge">
+          <div class="app-icon-row">
+            <span class="app-emoji">💰</span>
+            <div>
+              <div class="app-name">CNX — KAY'S FINANCIAL OS</div>
+              <div class="app-sub">kay887.github.io/CNX-Spend/</div>
+            </div>
+          </div>
+          <div class="status-pill live"><span class="sd"></span>LIVE</div>
+        </div>
+        <div class="app-desc">Full Apr–Dec 2026 finance plan. CC debt burn-down, EF/Buffer tracking, daily expense logger, goals. Supabase real-time sync.</div>
+      </div>
+      <div class="app-rows">
+        <div class="arow"><span class="arow-l">Monthly income</span><span class="arow-v" style="color:var(--ac)">₹1,40,000</span></div>
+        <div class="arow"><span class="arow-l">CC1 outstanding</span><span class="arow-v" style="color:var(--rd)">₹93,000 → ₹0 Oct</span></div>
+        <div class="arow"><span class="arow-l">CC2 outstanding</span><span class="arow-v" style="color:var(--or)">₹95,000 → ₹0 Dec</span></div>
+        <div class="arow"><span class="arow-l">EF target</span><span class="arow-v" style="color:var(--gn)">₹2,00,000</span><div class="arow-bar"><div class="arow-fill" style="width:4%;background:var(--gn)"></div></div></div>
+        <div class="arow"><span class="arow-l">Bike goal</span><span class="arow-v" style="color:var(--go)">₹50k · Sep 2026</span></div>
+        <div class="arow"><span class="arow-l">Current phase</span><span class="arow-v" style="color:var(--t2)">Phase 1 — High Constraint</span></div>
+      </div>
+      <a class="app-launch" href="https://kay887.github.io/CNX-Spend/" target="_blank">OPEN CNX SPEND <span class="arr">↗</span></a>
+    </div>
+
+    <div class="app-card go">
+      <div class="app-head">
+        <div class="app-badge">
+          <div class="app-icon-row">
+            <span class="app-emoji">📝</span>
+            <div>
+              <div class="app-name">CYBERNEURIX — BLOG OS</div>
+              <div class="app-sub">kay887.github.io/Blogging-calendar/</div>
+            </div>
+          </div>
+          <div class="status-pill live"><span class="sd"></span>LIVE</div>
+        </div>
+        <div class="app-desc">Content planner, Kanban, analytics tracker, Strategy Lab, LinkedIn AI post generator, monthly calendar. Full editorial pipeline.</div>
+      </div>
+      <div class="app-rows">
+        <div class="arow"><span class="arow-l">Modules</span><span class="arow-v" style="color:var(--go)">6 tabs</span></div>
+        <div class="arow"><span class="arow-l">Publishing rhythm</span><span class="arow-v" style="color:var(--t2)">Mon–Fri · 5 archetypes</span></div>
+        <div class="arow"><span class="arow-l">Content clusters</span><span class="arow-v" style="color:var(--t2)">Cybersec · Neurotech · Pulse</span></div>
+        <div class="arow"><span class="arow-l">AI generator</span><span class="arow-v" style="color:var(--gn)">Claude Sonnet powered</span></div>
+        <div class="arow"><span class="arow-l">Strategy Lab</span><span class="arow-v" style="color:var(--go)">Clusters · KW gaps · Heatmap</span></div>
+        <div class="arow"><span class="arow-l">Sync</span><span class="arow-v" style="color:var(--t2)">Supabase · local first</span></div>
+      </div>
+      <a class="app-launch" href="https://kay887.github.io/Blogging-calendar/" target="_blank">OPEN BLOG OS <span class="arr">↗</span></a>
+    </div>
+
+  </div>
+
+  <div class="bot-grid">
+
+    <div class="app-card gn">
+      <div class="app-head">
+        <div class="app-badge">
+          <div class="app-icon-row">
+            <span class="app-emoji">🧠</span>
+            <div>
+              <div class="app-name">PERS.EVOL — v2</div>
+              <div class="app-sub">kay887.github.io/Pers.Evol-v2/</div>
+            </div>
+          </div>
+          <div class="status-pill live"><span class="sd"></span>ACTIVE</div>
+        </div>
+        <div class="app-desc">Personal evolution tracker with Neurix AI intelligence layer. Progress dashboard, habit tracking, sprint view.</div>
+      </div>
+      <div class="app-rows">
+        <div class="arow"><span class="arow-l">Sprint</span><span class="arow-v" style="color:var(--gn)">Apr 18 – Aug 15</span></div>
+        <div class="arow"><span class="arow-l">Duration</span><span class="arow-v" style="color:var(--t2)">119 days</span></div>
+        <div class="arow"><span class="arow-l">AI layer</span><span class="arow-v" style="color:var(--gn)">Neurix AI active</span></div>
+      </div>
+      <a class="app-launch" href="https://kay887.github.io/Pers.Evol-v2/" target="_blank">OPEN PERS.EVOL <span class="arr">↗</span></a>
+    </div>
+
+    <div class="app-card rd">
+      <div class="app-head">
+        <div class="app-badge">
+          <div class="app-icon-row">
+            <span class="app-emoji">⚡</span>
+            <div>
+              <div class="app-name">RIXTRACE — CNIS v3</div>
+              <div class="app-sub">cyberneurix.github.io/RixTrace-/</div>
+            </div>
+          </div>
+          <div class="status-pill build"><span class="sd"></span>BUILDING</div>
+        </div>
+        <div class="app-desc">CNIS Module 01 build tracker. Phase Map, Task Intel, Velocity Log, Architecture, Signal Sources, Market Position.</div>
+      </div>
+      <div class="app-rows">
+        <div class="arow"><span class="arow-l">Phases mapped</span><span class="arow-v" style="color:var(--rd)">8 phases</span></div>
+        <div class="arow"><span class="arow-l">Tasks</span><span class="arow-v" style="color:var(--t2)">80 in Task Intel</span></div>
+        <div class="arow"><span class="arow-l">Target</span><span class="arow-v" style="color:var(--or)">Marketable v1</span></div>
+      </div>
+      <a class="app-launch" href="https://cyberneurix.github.io/RixTrace-/" target="_blank">OPEN RIXTRACE <span class="arr">↗</span></a>
+    </div>
+
+    <div class="app-card pu">
+      <div class="app-head">
+        <div class="app-badge">
+          <div class="app-icon-row">
+            <span class="app-emoji">📚</span>
+            <div>
+              <div class="app-name">SA UPSKILL — 187</div>
+              <div class="app-sub">kay887.github.io/Alls-SAupskill-187--/</div>
+            </div>
+          </div>
+          <div class="status-pill live"><span class="sd"></span>ACTIVE</div>
+        </div>
+        <div class="app-desc">Solutions Architect study command. 139 topics across Pi Model. XP system, assessments, 60-day plan, mind map.</div>
+      </div>
+      <div class="app-rows">
+        <div class="arow"><span class="arow-l">Total topics</span><span class="arow-v" style="color:var(--pu)">139</span></div>
+        <div class="arow"><span class="arow-l">Horizontal / Left / Right</span><span class="arow-v" style="color:var(--t2)">54 / 53 / 32</span></div>
+        <div class="arow"><span class="arow-l">Sprint</span><span class="arow-v" style="color:var(--t2)">Apr 20 → Jul 14 2026</span></div>
+      </div>
+      <a class="app-launch" href="https://kay887.github.io/Alls-SAupskill-187--/" target="_blank">OPEN SA UPSKILL <span class="arr">↗</span></a>
+    </div>
+
+  </div>
+
+  <!-- OPC TRACKER CARD — FULL WIDTH -->
+  <div class="single-row">
+    <div class="app-card pi">
+      <div class="app-head">
+        <div class="app-badge">
+          <div class="app-icon-row">
+            <span class="app-emoji">⚖️</span>
+            <div>
+              <div class="app-name">CYBERNEURIX — LEGAL & IP COMMAND</div>
+              <div class="app-sub">kay887.github.io/OPC-Tracker/</div>
+            </div>
+          </div>
+          <div class="status-pill legal"><span class="sd"></span>IN PROGRESS</div>
+        </div>
+        <div class="app-desc">OPC incorporation tracker · Proprietorship transition · Trademark portfolio (10 marks) · Full legal layer for CyberNeurix Technologies. Real-time Supabase sync.</div>
+      </div>
+      <div class="app-rows" style="display:grid;grid-template-columns:1fr 1fr 1fr">
+        <div>
+          <div class="arow" style="border-right:1px solid rgba(22,32,48,.6)">
+            <span class="arow-l">OPC Setup</span>
+            <span class="arow-v" style="color:var(--pi)" id="opc-card-opc">—%</span>
+            <div class="arow-bar"><div class="arow-fill" style="width:0%;background:var(--pi)" id="opc-fill-opc"></div></div>
+          </div>
+          <div class="arow" style="border-right:1px solid rgba(22,32,48,.6)">
+            <span class="arow-l">Phases complete</span>
+            <span class="arow-v" style="color:var(--t2)" id="opc-phases">—</span>
+          </div>
+        </div>
+        <div>
+          <div class="arow" style="border-right:1px solid rgba(22,32,48,.6)">
+            <span class="arow-l">Proprietorship</span>
+            <span class="arow-v" style="color:var(--pu)" id="opc-card-prop">—%</span>
+            <div class="arow-bar"><div class="arow-fill" style="width:0%;background:var(--pu)" id="opc-fill-prop"></div></div>
+          </div>
+          <div class="arow" style="border-right:1px solid rgba(22,32,48,.6)">
+            <span class="arow-l">Steps done / total</span>
+            <span class="arow-v" style="color:var(--t2)" id="opc-steps">—</span>
+          </div>
+        </div>
+        <div>
+          <div class="arow">
+            <span class="arow-l">Trademarks filed</span>
+            <span class="arow-v" style="color:var(--gn)" id="opc-card-tm">— / 10</span>
+            <div class="arow-bar"><div class="arow-fill" style="width:0%;background:var(--gn)" id="opc-fill-tm"></div></div>
+          </div>
+          <div class="arow">
+            <span class="arow-l">Last synced</span>
+            <span class="arow-v" style="color:var(--t2);font-size:8px" id="opc-lastsync">—</span>
+          </div>
+        </div>
+      </div>
+      <a class="app-launch" href="https://kay887.github.io/OPC-Tracker/" target="_blank">OPEN LEGAL & IP TRACKER <span class="arr">↗</span></a>
+    </div>
+  </div>
+
+  <!-- BOTTOM PANELS -->
+  <div class="bottom-grid">
+
+    <div class="panel">
+      <div class="panel-t">
+        <span style="display:flex;align-items:center;gap:5px"><span style="color:var(--ac);font-size:7px">▸</span> DAILY FOCUS LOG</span>
+        <button onclick="clearLog()" style="background:none;border:none;color:var(--t3);font-family:var(--mn);font-size:8px;cursor:pointer;letter-spacing:.5px">CLEAR ALL</button>
+      </div>
+      <div class="log-inp-row">
+        <input class="log-inp" id="log-inp" placeholder="Log a win, blocker, or task…" onkeydown="if(event.key==='Enter')addLog()"/>
+        <select class="log-sel" id="log-sys">
+          <option value="CNX">CNX</option>
+          <option value="BLOG">BLOG</option>
+          <option value="EVOL">EVOL</option>
+          <option value="RIXTR">RIXTR</option>
+          <option value="SA">SA</option>
+          <option value="OPC">OPC</option>
+        </select>
+        <button class="log-btn" onclick="addLog()">LOG</button>
+      </div>
+      <div class="log-list" id="log-list">
+        <div class="log-empty">NO ENTRIES — LOG A WIN, BLOCKER, OR TASK</div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-family:var(--mn);font-size:8px;color:var(--t3);letter-spacing:2px;margin-bottom:10px;display:flex;align-items:center;gap:5px"><span style="color:var(--ac);font-size:7px">▸</span> QUICK LAUNCH</div>
+      <div class="ql-grid" style="margin-bottom:12px">
+        <a class="ql ac" href="https://kay887.github.io/CNX-Spend/" target="_blank">
+          <span class="ql-icon">💰</span>
+          <div><div class="ql-name">CNX SPEND</div><div class="ql-sub">Finance OS</div></div>
+        </a>
+        <a class="ql go" href="https://kay887.github.io/Blogging-calendar/" target="_blank">
+          <span class="ql-icon">📝</span>
+          <div><div class="ql-name">BLOG OS</div><div class="ql-sub">Content Engine</div></div>
+        </a>
+        <a class="ql gn" href="https://kay887.github.io/Pers.Evol-v2/" target="_blank">
+          <span class="ql-icon">🧠</span>
+          <div><div class="ql-name">PERS.EVOL</div><div class="ql-sub">Personal Growth</div></div>
+        </a>
+        <a class="ql rd" href="https://cyberneurix.github.io/RixTrace-/" target="_blank">
+          <span class="ql-icon">⚡</span>
+          <div><div class="ql-name">RIXTRACE</div><div class="ql-sub">CNIS Build</div></div>
+        </a>
+        <a class="ql pu" href="https://kay887.github.io/Alls-SAupskill-187--/" target="_blank">
+          <span class="ql-icon">📚</span>
+          <div><div class="ql-name">SA UPSKILL</div><div class="ql-sub">139 topics · Pi Model</div></div>
+        </a>
+        <a class="ql pi" href="https://kay887.github.io/OPC-Tracker/" target="_blank">
+          <span class="ql-icon">⚖️</span>
+          <div><div class="ql-name">OPC TRACKER</div><div class="ql-sub">Legal & IP</div></div>
+        </a>
+      </div>
+
+      <div class="brief">
+        <div class="brief-t">▸ ACTIVE CONTEXT BRIEF</div>
+        <div class="brief-row">
+          📅 <strong style="color:var(--t1)">Phase 1 active</strong> — High Constraint (Apr–Jun 2026)<br>
+          💳 <strong style="color:var(--rd)">CC1 ₹93k + CC2 ₹95k</strong> — clears Oct + Dec 2026<br>
+          🛡 <strong style="color:var(--gn)">EF target ₹2L</strong> — from zero, ₹8k April start<br>
+          🏍 <strong style="color:var(--go)">Bike ₹50k</strong> — from buffer, purchase September<br>
+          📝 <strong style="color:var(--go)">Blog OS</strong> — Mon–Fri rhythm, 3 content clusters<br>
+          📚 <strong style="color:var(--pu)">SA sprint</strong> — 139 topics, Apr 20 → Jul 14<br>
+          ⚡ <strong style="color:var(--or)">RixTrace</strong> — CNIS v1 build toward Marketable<br>
+          ⚖️ <strong style="color:var(--pi)">OPC + Legal</strong> — Proprietorship + 10 TM filings active
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <div class="footer-l">CNX MASTER COMMAND · KAY · 2026</div>
+    <div class="footer-links">
+      <a href="https://kay887.github.io/CNX-Spend/" target="_blank">CNX-SPEND</a>
+      <a href="https://kay887.github.io/Blogging-calendar/" target="_blank">BLOG-OS</a>
+      <a href="https://kay887.github.io/Pers.Evol-v2/" target="_blank">PERS-EVOL</a>
+      <a href="https://cyberneurix.github.io/RixTrace-/" target="_blank">RIXTRACE</a>
+      <a href="https://kay887.github.io/Alls-SAupskill-187--/" target="_blank">SA-UPSKILL</a>
+      <a href="https://kay887.github.io/OPC-Tracker/" target="_blank">OPC-TRACKER</a>
+    </div>
+  </div>
+
+</div><!-- end systems tab -->
+
+<!-- ══════════════════════════════════════
+     TAB: DISCIPLINE
+══════════════════════════════════════ -->
+<div class="tab-panel" id="tab-discipline">
+
+  <div class="disc-hero">
+    <div class="disc-hero-title">◈ DISCIPLINE INTELLIGENCE</div>
+    <div class="disc-hero-sub">Cross-system observations, signal patterns, and execution health across all 6 active CNX trackers. Updates in real-time from Supabase.</div>
+  </div>
+
+  <!-- AGGREGATE STATS -->
+  <div class="disc-summary" style="margin-bottom:20px">
+    <div class="disc-summary-title">▸ AGGREGATE EXECUTION METRICS</div>
+    <div class="disc-stat-row">
+      <div class="disc-stat">
+        <div class="disc-stat-val" style="color:var(--ac)" id="disc-systems">6</div>
+        <div class="disc-stat-lbl">SYSTEMS ACTIVE</div>
+      </div>
+      <div class="disc-stat">
+        <div class="disc-stat-val" style="color:var(--gn)" id="disc-synced">—</div>
+        <div class="disc-stat-lbl">SUPABASE SYNCED</div>
+      </div>
+      <div class="disc-stat">
+        <div class="disc-stat-val" style="color:var(--pi)" id="disc-opc-total">—</div>
+        <div class="disc-stat-lbl">OPC STEPS DONE</div>
+      </div>
+      <div class="disc-stat">
+        <div class="disc-stat-val" style="color:var(--go)" id="disc-tm-filed">—/10</div>
+        <div class="disc-stat-lbl">TM MARKS FILED</div>
+      </div>
+      <div class="disc-stat">
+        <div class="disc-stat-val" style="color:var(--pu)" id="disc-sprint-days">—d</div>
+        <div class="disc-stat-lbl">SA SPRINT LEFT</div>
+      </div>
+      <div class="disc-stat">
+        <div class="disc-stat-val" style="color:var(--rd)" id="disc-debt">₹1.88L</div>
+        <div class="disc-stat-lbl">TOTAL CC DEBT</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYSTEM HEALTH RADAR -->
+  <div class="disc-radar">
+    <div class="disc-radar-title">
+      <span>▸ SYSTEM HEALTH RADAR</span>
+      <span style="font-size:7px;color:var(--t3)" id="disc-lastsync">Last sync: —</span>
+    </div>
+    <div class="radar-row">
+      <span class="radar-label">Finance OS</span>
+      <div class="radar-bar-wrap"><div class="radar-fill" style="width:75%;background:var(--ac)"></div></div>
+      <span class="radar-pct" style="color:var(--ac)">75%</span>
+      <span class="radar-status rs-live">LIVE</span>
+    </div>
+    <div class="radar-row">
+      <span class="radar-label">Blog OS</span>
+      <div class="radar-bar-wrap"><div class="radar-fill" style="width:60%;background:var(--go)"></div></div>
+      <span class="radar-pct" style="color:var(--go)">60%</span>
+      <span class="radar-status rs-live">LIVE</span>
+    </div>
+    <div class="radar-row">
+      <span class="radar-label">Pers.Evol</span>
+      <div class="radar-bar-wrap"><div class="radar-fill" id="disc-evol-bar" style="width:0%;background:var(--gn)"></div></div>
+      <span class="radar-pct" style="color:var(--gn)" id="disc-evol-pct">—%</span>
+      <span class="radar-status rs-live">ACTIVE</span>
+    </div>
+    <div class="radar-row">
+      <span class="radar-label">RixTrace</span>
+      <div class="radar-bar-wrap"><div class="radar-fill" style="width:30%;background:var(--rd)"></div></div>
+      <span class="radar-pct" style="color:var(--rd)">30%</span>
+      <span class="radar-status rs-build">BUILD</span>
+    </div>
+    <div class="radar-row">
+      <span class="radar-label">SA Upskill</span>
+      <div class="radar-bar-wrap"><div class="radar-fill" id="disc-sa-bar" style="width:0%;background:var(--pu)"></div></div>
+      <span class="radar-pct" style="color:var(--pu)" id="disc-sa-pct">—%</span>
+      <span class="radar-status rs-live">ACTIVE</span>
+    </div>
+    <div class="radar-row">
+      <span class="radar-label">OPC / Legal</span>
+      <div class="radar-bar-wrap"><div class="radar-fill" style="width:0%;background:var(--pi)" id="disc-opc-bar"></div></div>
+      <span class="radar-pct" style="color:var(--pi)" id="disc-opc-pct">—%</span>
+      <span class="radar-status rs-legal" id="disc-opc-status">LEGAL</span>
+    </div>
+  </div>
+
+  <!-- OBSERVATION CARDS -->
+  <div class="sec-t">Observations</div>
+  <div class="disc-grid">
+
+    <div class="disc-card warn">
+      <div class="disc-card-icon">💳</div>
+      <div class="disc-card-title">DEBT LOAD DOMINATES PHASE 1</div>
+      <div class="disc-card-body">CC1 (₹93k, Oct) + CC2 (₹95k, Dec) = ₹1.88L total. This constrains every other system. RixTrace build, SA prep, and legal costs are all deprioritised until Phase 2 (Jul+). Your sequencing is correct — clear debt first.</div>
+    </div>
+
+    <div class="disc-card good">
+      <div class="disc-card-icon">⚡</div>
+      <div class="disc-card-title">RIXTRACE IS YOUR ASYMMETRIC BET</div>
+      <div class="disc-card-body">80 tasks mapped, 8 phases structured. CNIS v1 toward Marketable is the highest leverage play — a working cybersec product compounds across Blog OS content, SA credibility, and revenue post-debt clearance. Don't let it go cold.</div>
+    </div>
+
+    <div class="disc-card info">
+      <div class="disc-card-icon">📚</div>
+      <div class="disc-card-title">SA + RIXTRACE OVERLAP IS REAL</div>
+      <div class="disc-card-body">SA Upskill (139 topics, Pi Model) and RixTrace (CNIS product) are not separate — SA study directly strengthens RixTrace architecture decisions. Treat them as one discipline layer, not competing priorities.</div>
+    </div>
+
+    <div class="disc-card crit" id="obs-opc">
+      <div class="disc-card-icon">⚖️</div>
+      <div class="disc-card-title">OPC / LEGAL STATUS</div>
+      <div class="disc-card-body" id="obs-opc-body">Loading from Supabase… OPC setup + proprietorship transition + 10 trademark filings are active. Track deadlines: INC-20A (180 days), auditor ADT-1 (30 days), share certificate (60 days).</div>
+    </div>
+
+    <div class="disc-card neutral">
+      <div class="disc-card-icon">📝</div>
+      <div class="disc-card-title">BLOG OS IS YOUR PROOF OF WORK</div>
+      <div class="disc-card-body">Mon–Fri cadence across Cybersec · Neurotech · Pulse. This is the public signal layer — every post compounds brand equity for CyberNeurix, which feeds trademark value, SA credibility, and eventually client acquisition for CNIS.</div>
+    </div>
+
+    <div class="disc-card warn">
+      <div class="disc-card-icon">🧠</div>
+      <div class="disc-card-title">EVOL SPRINT WINDOW IS CLOSING</div>
+      <div class="disc-card-body">Apr 18 – Aug 15 sprint. <span id="obs-evol-days">—</span> days remaining. Pers.Evol is your identity and habit foundation — if this slips, the other systems lose their grounding. Protect it even during high-constraint months.</div>
+    </div>
+
+  </div>
+
+  <!-- SIGNALS: RISKS + OPPORTUNITIES -->
+  <div class="disc-signals">
+
+    <div class="signal-panel">
+      <div class="signal-title">▸ RISK SIGNALS</div>
+      <div class="signal-item">
+        <span class="sig-icon">🔴</span>
+        <div class="sig-body">
+          <div class="sig-label" style="color:var(--rd)">DEBT PRESSURE ON LEGAL COSTS</div>
+          <div class="sig-text">OPC trademark filings (₹49,500+ MSME rate) compete with CC burn-down timeline. Consider filing CyberNeurix + CNIS first, defer 7 Rix modules to Phase 2.</div>
+          <span class="sig-tag tag-rd">HIGH</span>
+        </div>
+      </div>
+      <div class="signal-item">
+        <span class="sig-icon">🟡</span>
+        <div class="sig-body">
+          <div class="sig-label" style="color:var(--go)">OPC DEADLINE EXPOSURE</div>
+          <div class="sig-text">INC-20A must be filed within 180 days of COI. Missing it = ₹50,000 penalty. ADT-1 within 30 days. These are hard legal deadlines with no grace period.</div>
+          <span class="sig-tag tag-go">WATCH</span>
+        </div>
+      </div>
+      <div class="signal-item">
+        <span class="sig-icon">🟡</span>
+        <div class="sig-body">
+          <div class="sig-label" style="color:var(--go)">SA SPRINT VELOCITY RISK</div>
+          <div class="sig-text">139 topics, Apr 20 → Jul 14. <span id="risk-sa-days">—</span> days left. Falling behind on the Pi Model horizontal layer first will block depth learning in vertical specialisations.</div>
+          <span class="sig-tag tag-go">MONITOR</span>
+        </div>
+      </div>
+      <div class="signal-item">
+        <span class="sig-icon">🔵</span>
+        <div class="sig-body">
+          <div class="sig-label" style="color:var(--ac)">RIXTRACE BUILD STALL RISK</div>
+          <div class="sig-text">With Phase 1 financial pressure, RixTrace may lose momentum. Minimum viable discipline: 1 task/day in Task Intel to keep phase progression alive.</div>
+          <span class="sig-tag tag-ac">LOW</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="signal-panel">
+      <div class="signal-title">▸ OPPORTUNITY SIGNALS</div>
+      <div class="signal-item">
+        <span class="sig-icon">🟢</span>
+        <div class="sig-body">
+          <div class="sig-label" style="color:var(--gn)">UDYAM = 50% TM COST SAVING</div>
+          <div class="sig-text">Registering Udyam (MSME, free, 10 min) cuts every trademark filing from ₹9,000 to ₹4,500. On 10 marks = ₹45,000 saved. Do this before filing any TM-A.</div>
+          <span class="sig-tag tag-gn">HIGH VALUE</span>
+        </div>
+      </div>
+      <div class="signal-item">
+        <span class="sig-icon">🟢</span>
+        <div class="sig-body">
+          <div class="sig-label" style="color:var(--gn)">PROPRIETORSHIP = ZERO COST ENTITY</div>
+          <div class="sig-text">Proprietorship has ₹0 setup cost vs ₹24k–₹60k for OPC Year 1. Operating CyberNeurix brand under proprietorship while OPC is set up keeps cash available for debt clearance.</div>
+          <span class="sig-tag tag-gn">ACTIVE</span>
+        </div>
+      </div>
+      <div class="signal-item">
+        <span class="sig-icon">💡</span>
+        <div class="sig-body">
+          <div class="sig-label" style="color:var(--pi)">BLOG → TM BRAND SIGNAL</div>
+          <div class="sig-text">Active Blog OS publishing (Mon–Fri) establishes "use in commerce" evidence for trademark applications. Document blog publish dates as prior use evidence for CyberNeurix + CNIS marks.</div>
+          <span class="sig-tag tag-pi">STRATEGIC</span>
+        </div>
+      </div>
+      <div class="signal-item">
+        <span class="sig-icon">💡</span>
+        <div class="sig-body">
+          <div class="sig-label" style="color:var(--pu)">SA CERT → CNIS CREDIBILITY</div>
+          <div class="sig-text">SA certification post-sprint directly elevates RixTrace (cloud architecture credibility) and CyberNeurix client pitch quality. The systems compound into each other post-Jul 14.</div>
+          <span class="sig-tag tag-pu">COMPOUNDING</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DISCIPLINE INSIGHT -->
+  <div class="disc-summary">
+    <div class="disc-summary-title">▸ DISCIPLINE SYNTHESIS</div>
+    <div class="disc-insight" id="disc-insight">
+      You are running 6 parallel systems under significant financial constraint (₹1.88L CC debt). The sequencing is correct: clear debt first (Phase 1), then activate legal + product build (Phase 2+). The highest risk is deadline-driven legal exposure on OPC filings — these cannot be deferred like product tasks. The highest leverage action right now is: <strong style="color:var(--pi)">Udyam registration (free, 10 min)</strong> which unlocks 50% TM savings. Second: <strong style="color:var(--gn)">maintain Blog OS cadence</strong> as it's the only system that compounds brand equity with zero cash cost. Keep RixTrace at minimum 1 task/day. Don't let SA sprint fall silent — it feeds everything after July.
+    </div>
+  </div>
+
+  <div class="footer" style="margin-top:20px">
+    <div class="footer-l">CNX DISCIPLINE · REAL-TIME · 2026</div>
+    <div class="footer-links">
+      <a href="https://kay887.github.io/OPC-Tracker/" target="_blank">OPC-TRACKER</a>
+      <a href="https://kay887.github.io/CNX-Spend/" target="_blank">CNX-SPEND</a>
+      <a href="https://cyberneurix.github.io/RixTrace-/" target="_blank">RIXTRACE</a>
+    </div>
+  </div>
+
+</div><!-- end discipline tab -->
+
+
+<script>
+// ── CLOCK ──
+function tick(){
+  const now=new Date();
+  const d=['SUN','MON','TUE','WED','THU','FRI','SAT'][now.getDay()];
+  const t=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  const dt=now.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+  document.getElementById('clock').textContent=d+' · '+dt+' · '+t;
+}
+tick();setInterval(tick,1000);
+
+// ── SPRINT PROGRESS ──
+function sprintPct(startStr,endStr){
+  const s=new Date(startStr),e=new Date(endStr),n=new Date();
+  return Math.min(Math.max(((n-s)/(e-s))*100,0),100);
+}
+function daysLeft(endStr){
+  const e=new Date(endStr),n=new Date();
+  return Math.max(0,Math.ceil((e-n)/(1000*60*60*24)));
+}
+
+// Evol sprint
+const evolPct=sprintPct('2026-04-18','2026-08-15');
+document.getElementById('evol-vbar').style.width=evolPct.toFixed(1)+'%';
+document.getElementById('disc-evol-bar').style.width=evolPct.toFixed(1)+'%';
+document.getElementById('disc-evol-pct').textContent=Math.round(evolPct)+'%';
+
+// SA sprint
+const saPct=sprintPct('2026-04-20','2026-07-14');
+document.getElementById('sa-vbar').style.width=saPct.toFixed(1)+'%';
+document.getElementById('disc-sa-bar').style.width=saPct.toFixed(1)+'%';
+document.getElementById('disc-sa-pct').textContent=Math.round(saPct)+'%';
+
+// Days remaining
+const saLeft=daysLeft('2026-07-14');
+const evolLeft=daysLeft('2026-08-15');
+document.getElementById('disc-sprint-days').textContent=saLeft+'d';
+if(document.getElementById('obs-evol-days')) document.getElementById('obs-evol-days').textContent=evolLeft;
+if(document.getElementById('risk-sa-days')) document.getElementById('risk-sa-days').textContent=saLeft;
+
+// ── SUPABASE REST SYNC (no WebSocket) ──
+const SB_URL='https://veovscvlsegoiuphvgwu.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlb3ZzY3Zsc2Vnb2l1cGh2Z3d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NTM2OTEsImV4cCI6MjA5MDAyOTY5MX0.xWg1HjwUs_FC285cYpA8VcCeqSqFKLn1j_2llnm9Zrk';
+
+const OPC_TRACKER_ID='cnx_full_v2';
+
+// Step counts per section (must match OPC tracker)
+const OPC_STEP_TOTAL=38; // phases 0-5: 7+3+3+8+10+7
+const PROP_STEP_TOTAL=16; // prop phases 0-2: 6+5+5
+const TM_STEP_TOTAL=10;  // 10 marks
+
+function setSyncBadge(s){
+  const el=document.getElementById('syncBadge');
+  if(!el)return;
+  if(s==='syncing'){el.className='sync-dot syncing';el.textContent='◌ SYNCING';}
+  else if(s==='synced'){el.className='sync-dot synced';el.textContent='✓ SYNCED';}
+  else{el.className='sync-dot error';el.textContent='✕ OFFLINE';}
+}
+
+function applyOpcData(data){
+  if(!data||!data.checked_state)return;
+  const cs=data.checked_state;
+  const steps=cs.steps||{};
+  const tmStatuses=cs.tmStatuses||{};
+
+  // Count OPC steps
+  let opcDone=0;
+  Object.keys(steps).forEach(k=>{if(k.startsWith('opc-')&&steps[k])opcDone++;});
+  const opcPct=Math.round(opcDone/OPC_STEP_TOTAL*100);
+
+  // Count prop steps
+  let propDone=0;
+  Object.keys(steps).forEach(k=>{if(k.startsWith('prop-')&&steps[k])propDone++;});
+  const propPct=Math.round(propDone/PROP_STEP_TOTAL*100);
+
+  // Count TM filed/registered
+  const TM_IDS=['tm-cyberneurix','tm-cnis','tm-rix','tm-rixone','tm-rixlogix','tm-rixtrace','tm-rixcontrol','tm-rixcloud','tm-rixnexis','tm-rixintel'];
+  let tmFiled=0;
+  TM_IDS.forEach(id=>{
+    const s=tmStatuses[id]||'todo';
+    if(s==='filed'||s==='registered')tmFiled++;
+  });
+  const tmPct=Math.round(tmFiled/TM_STEP_TOTAL*100);
+
+  // Overall pct (weighted: opc 50%, prop 25%, tm 25%)
+  const overallPct=Math.round(opcPct*0.5+propPct*0.25+tmPct*0.25);
+  const totalDone=opcDone+propDone;
+  const totalSteps=OPC_STEP_TOTAL+PROP_STEP_TOTAL;
+
+  // OPC phases complete count
+  let phasesComplete=0;
+  const phaseChecks=[
+    {prefix:'opc-0-',total:7},{prefix:'opc-1-',total:3},{prefix:'opc-2-',total:3},
+    {prefix:'opc-3-',total:8},{prefix:'opc-4-',total:10},{prefix:'opc-5-',total:7}
+  ];
+  phaseChecks.forEach(p=>{
+    let d=0;
+    for(let i=0;i<p.total;i++){if(steps[p.prefix+i])d++;}
+    if(d===p.total)phasesComplete++;
+  });
+
+  // ── Update vitals
+  const vv=document.getElementById('opc-vital-val');
+  const vs=document.getElementById('opc-vital-sub');
+  const vb=document.getElementById('opc-vbar');
+  if(vv)vv.textContent=overallPct+'%';
+  if(vs)vs.textContent=`${totalDone}/${totalSteps} steps · ${tmFiled}/10 TMs`;
+  if(vb)vb.style.width=overallPct+'%';
+
+  // ── Update card rows
+  const co=document.getElementById('opc-card-opc');
+  const cp=document.getElementById('opc-card-prop');
+  const ct=document.getElementById('opc-card-tm');
+  const ph=document.getElementById('opc-phases');
+  const st=document.getElementById('opc-steps');
+  const fo=document.getElementById('opc-fill-opc');
+  const fp=document.getElementById('opc-fill-prop');
+  const ft=document.getElementById('opc-fill-tm');
+  if(co)co.textContent=opcPct+'%';
+  if(cp)cp.textContent=propPct+'%';
+  if(ct)ct.textContent=tmFiled+'/10';
+  if(ph)ph.textContent=phasesComplete+'/6 phases';
+  if(st)st.textContent=totalDone+' / '+totalSteps;
+  if(fo)fo.style.width=opcPct+'%';
+  if(fp)fp.style.width=propPct+'%';
+  if(ft)ft.style.width=tmPct+'%';
+
+  // ── Discipline tab
+  const dop=document.getElementById('disc-opc-pct');
+  const dob=document.getElementById('disc-opc-bar');
+  const dot=document.getElementById('disc-opc-total');
+  const dtm=document.getElementById('disc-tm-filed');
+  const ds=document.getElementById('disc-synced');
+  if(dop)dop.textContent=overallPct+'%';
+  if(dob)dob.style.width=overallPct+'%';
+  if(dot)dot.textContent=totalDone;
+  if(dtm)dtm.textContent=tmFiled+'/10';
+  if(ds)ds.textContent='3';
+
+  // OPC card observation update
+  const ob=document.getElementById('obs-opc-body');
+  if(ob){
+    let txt='';
+    if(overallPct===0) txt='Not started. Begin with Phase 0: finalize company name variants and run MCA + CGPDTM searches before touching any filings.';
+    else if(overallPct<30) txt=`${overallPct}% complete (${totalDone}/${totalSteps} steps). Early stage — ensure DSC token is tested before proceeding to SPICe+ filings.`;
+    else if(overallPct<60) txt=`${overallPct}% complete. Good momentum. Watch deadlines: INC-20A (180 days from COI), ADT-1 (30 days), share cert (60 days). ${tmFiled}/10 trademarks filed.`;
+    else if(overallPct<90) txt=`${overallPct}% complete. Most legal groundwork done. Focus on annual compliance setup and remaining ${10-tmFiled} trademark filings.`;
+    else txt=`${overallPct}% complete — nearly done. Final compliance layer (annual filings, DIR-3 KYC, PT registration). ${tmFiled}/10 TMs filed.`;
+    ob.textContent=txt;
+    // Color code the card
+    const card=document.getElementById('obs-opc');
+    if(card){card.className='disc-card '+(overallPct===0?'crit':overallPct<50?'warn':overallPct<80?'info':'good');}
+  }
+
+  // Last sync time
+  const ls=data.updated_at?new Date(data.updated_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false})+' · '+new Date(data.updated_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):'—';
+  const lsEl=document.getElementById('opc-lastsync');
+  const dlsEl=document.getElementById('disc-lastsync');
+  if(lsEl)lsEl.textContent=ls;
+  if(dlsEl)dlsEl.textContent='Last sync: '+ls;
+
+  setSyncBadge('synced');
+  document.getElementById('opc-live-tag').textContent='LIVE';
+}
+
+async function fetchOpcData(){
+  setSyncBadge('syncing');
+  try{
+    const url=`${SB_URL}/rest/v1/opc_tracker?tracker_id=eq.${OPC_TRACKER_ID}&select=checked_state,updated_at&limit=1`;
+    const res=await fetch(url,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'}});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const rows=await res.json();
+    if(!rows||!rows.length) throw new Error('No rows');
+    applyOpcData(rows[0]);
+  }catch(e){
+    setSyncBadge('error');
+    const vv=document.getElementById('opc-vital-val');
+    const vs=document.getElementById('opc-vital-sub');
+    if(vv)vv.textContent='—';
+    if(vs)vs.textContent='Supabase offline';
+  }
+}
+
+// Initial fetch + poll every 20s (REST only, no WebSocket)
+fetchOpcData();
+setInterval(fetchOpcData,20000);
+
+// ── TAB SWITCHING ──
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── LOG ──
+const LOG_KEY='cnx_master_log_v2';
+const SC={CNX:'var(--ac)',BLOG:'var(--go)',EVOL:'var(--gn)',RIXTR:'var(--rd)',SA:'var(--pu)',OPC:'var(--pi)'};
+function loadLog(){try{return JSON.parse(localStorage.getItem(LOG_KEY)||'[]');}catch(e){return[];}}
+function saveLog(a){localStorage.setItem(LOG_KEY,JSON.stringify(a));}
+
+function addLog(){
+  const inp=document.getElementById('log-inp');
+  const sys=document.getElementById('log-sys').value;
+  const txt=inp.value.trim();
+  if(!txt)return;
+  const a=loadLog();
+  const now=new Date();
+  a.unshift({id:Date.now(),sys,txt,
+    time:now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false})+
+         ' · '+now.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})});
+  if(a.length>60)a.length=60;
+  saveLog(a);inp.value='';renderLog();
+}
+function deleteLog(id){saveLog(loadLog().filter(e=>e.id!==id));renderLog();}
+function clearLog(){if(!confirm('Clear all log entries?'))return;localStorage.removeItem(LOG_KEY);renderLog();}
+
+function renderLog(){
+  const a=loadLog();
+  const el=document.getElementById('log-list');
+  if(!a.length){el.innerHTML='<div class="log-empty">NO ENTRIES — LOG A WIN, BLOCKER, OR TASK</div>';return;}
+  el.innerHTML=a.slice(0,20).map(e=>`
+    <div class="log-entry">
+      <div class="log-dot" style="background:${SC[e.sys]||'var(--t3)'}"></div>
+      <div class="log-body">
+        <div class="log-sys-lbl" style="color:${SC[e.sys]||'var(--t3)'}">${e.sys}</div>
+        <div class="log-txt">${e.txt}</div>
+      </div>
+      <div class="log-time">${e.time}</div>
+      <button class="log-del" onclick="deleteLog(${e.id})">✕</button>
+    </div>`).join('');
+}
+renderLog();
+</script>
+</body>
+</html>

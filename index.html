@@ -361,6 +361,161 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 
   <div class="footer">
     <div class="footer-l">CNX MASTER COMMAND · KAY · 2026</div>
+    <!-- ══════ PRIORITY ENGINE ══════ -->
+<div class="sec-t" style="margin-top:8px">Today's Top 3</div>
+
+<div style="background:var(--s1);border:1px solid var(--b1);border-radius:var(--rad);padding:14px 15px;margin-bottom:12px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div style="font-family:var(--mn);font-size:7px;color:var(--t3);letter-spacing:1px">
+      ▸ COMPUTED · URGENCY × LEVERAGE × ZERO-CASH · <span id="p3-ts" style="color:var(--gn)">—</span>
+    </div>
+    <button onclick="recomputePriority()" style="background:var(--ag2);border:1px solid rgba(0,200,240,.2);color:var(--ac);font-family:var(--mn);font-size:7px;padding:3px 9px;border-radius:4px;cursor:pointer;letter-spacing:.8px">↻ RECOMPUTE</button>
+  </div>
+  <div id="p3-list"></div>
+</div>
+
+<!-- ══════ HARD DEADLINES ══════ -->
+<div class="sec-t">Hard Deadlines</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px" id="dl-grid-main"></div>
+
+<script>
+(function(){
+  function dlDays(dateStr){
+    const d=new Date(dateStr);d.setHours(23,59,59);
+    return Math.max(0,Math.ceil((d-new Date())/864e5));
+  }
+  function urgCls(days){
+    if(days<=14)return'rd';
+    if(days<=45)return'go';
+    if(days<=90)return'gn';
+    return'ac';
+  }
+  function urgVar(cls){
+    return{rd:'var(--rd)',go:'var(--go)',gn:'var(--gn)',ac:'var(--ac)'}[cls]||'var(--ac)';
+  }
+  const DONE_KEY='cnx_p3_done_v2';
+  let _done={};
+  try{_done=JSON.parse(localStorage.getItem(DONE_KEY)||'{}')}catch(e){}
+  function saveDone(){try{localStorage.setItem(DONE_KEY,JSON.stringify(_done))}catch(e){}}
+  function todayKey(rank){return 'p'+rank+'_'+new Date().toDateString();}
+
+  function buildPriorities(){
+    const saLeft=daysLeft('2026-07-14');
+    return[
+      {
+        rank:'01',color:'var(--rd)',
+        system:'OPC / LEGAL',
+        action:'Register on Udyam portal — free, 10 min',
+        why:'Cuts every TM filing ₹9k → ₹4.5k. Saves ₹45,000 across 10 marks. Must happen BEFORE any TM-A filing. Highest leverage zero-cost action in the entire system.',
+        tags:[{t:'FREE',c:'gn'},{t:'SAVES ₹45K',c:'rd'},{t:'~10 MINS',c:'ac'}],
+        effort:'10 min'
+      },
+      {
+        rank:'02',color:'var(--go)',
+        system:'SA UPSKILL · '+saLeft+'D LEFT',
+        action:'Complete 2 Pi Model horizontal topics',
+        why:'Sprint ends Jul 14. Need ~2.3 topics/day. Horizontal layer unlocks all depth study — skipping it blocks Pi Model completion.',
+        tags:[{t:saLeft+'D LEFT',c:'rd'},{t:'BLOCKS DEPTH',c:'go'},{t:'2 TOPICS',c:'pu'}],
+        effort:'60–90 min'
+      },
+      {
+        rank:'03',color:'var(--ac)',
+        system:'RIXTRACE + BLOG OS',
+        action:'1 RixTrace task · publish 1 blog post',
+        why:'Both compound at zero cash cost. Blog post = TM prior-use evidence + CyberNeurix brand equity. RixTrace task = CNIS v1 momentum. Two compounding assets, one session.',
+        tags:[{t:'ZERO CASH',c:'gn'},{t:'TM EVIDENCE',c:'pi'},{t:'COMPOUNDING',c:'tl'}],
+        effort:'90–120 min'
+      }
+    ];
+  }
+
+  function renderPriorities(){
+    const now=new Date();
+    const tsEl=document.getElementById('p3-ts');
+    if(tsEl)tsEl.textContent=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false})+' · '+now.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}).toUpperCase();
+    const list=document.getElementById('p3-list');
+    if(!list)return;
+    const items=buildPriorities();
+    list.innerHTML=items.map(p=>{
+      const key=todayKey(p.rank);
+      const done=!!_done[key];
+      return`<div style="display:flex;align-items:flex-start;gap:12px;padding:11px 13px;background:var(--s2);border:1px solid var(--b1);border-left:3px solid ${p.color};border-radius:8px;margin-bottom:7px;opacity:${done?.55:1};transition:opacity .3s">
+        <div style="font-family:var(--mn);font-size:18px;font-weight:700;color:${p.color};line-height:1;min-width:26px;flex-shrink:0;margin-top:2px">${p.rank}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:var(--mn);font-size:6px;color:var(--t3);letter-spacing:1.5px;margin-bottom:3px">${p.system}</div>
+          <div style="font-size:12px;color:var(--t1);font-weight:500;margin-bottom:4px;line-height:1.35">${p.action}</div>
+          <div style="font-size:10px;color:var(--t2);line-height:1.5;margin-bottom:5px">${p.why}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">${p.tags.map(t=>`<span style="font-family:var(--mn);font-size:6px;padding:2px 5px;border-radius:2px;background:rgba(0,0,0,.2);color:var(--${t.c})">${t.t}</span>`).join('')}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+          <div style="font-family:var(--mn);font-size:7px;color:var(--t3)">${p.effort}</div>
+          <button onclick="p3Done('${key}')" style="background:${done?'var(--gr)':'none'};border:1px solid ${done?'rgba(0,217,104,.3)':'var(--b2)'};border-radius:4px;color:${done?'var(--gn)':'var(--t3)'};font-family:var(--mn);font-size:7px;padding:3px 7px;cursor:pointer;letter-spacing:.5px;transition:all .2s;white-space:nowrap">${done?'✓ DONE':'MARK DONE'}</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  window.p3Done=function(key){
+    _done[key]=!_done[key];
+    saveDone();
+    renderPriorities();
+  };
+  window.recomputePriority=function(){renderPriorities();};
+
+  const DEADLINES=[
+    {name:'ADT-1',system:'OPC',desc:'Auditor appointment',dateFixed:null,daysFrom:30,penalty:'₹300/day'},
+    {name:'SHARE CERT',system:'OPC',desc:'Issue share certificates',dateFixed:null,daysFrom:60,penalty:'Compliance breach'},
+    {name:'SA SPRINT',system:'SA-UP',desc:'139 topics · Pi Model',dateFixed:'2026-07-14',penalty:'Exam readiness risk'},
+    {name:'DIR-3 KYC',system:'OPC',desc:'Annual director KYC · MCA',dateFixed:'2026-09-30',penalty:'₹5,000/day'},
+    {name:'INC-20A',system:'OPC',desc:'Commencement declaration',dateFixed:null,daysFrom:180,penalty:'₹50,000 + strike-off'},
+    {name:'CC1 CLEAR',system:'FINANCE',desc:'₹93,000 debt clears',dateFixed:'2026-10-01',penalty:'Interest compounds'},
+    {name:'EVOL SPRINT',system:'EVOL',desc:'Apr 18 – Aug 15 sprint',dateFixed:'2026-08-15',penalty:'Momentum reset'},
+    {name:'CC2 CLEAR',system:'FINANCE',desc:'₹95,000 debt clears',dateFixed:'2026-12-01',penalty:'Interest compounds'},
+  ];
+
+  function renderDeadlines(){
+    const grid=document.getElementById('dl-grid-main');
+    if(!grid)return;
+    grid.innerHTML=DEADLINES.map(d=>{
+      const days=d.dateFixed?dlDays(d.dateFixed):(d.daysFrom||999);
+      const cls=urgCls(days);
+      const cv=urgVar(cls);
+      const pct=d.dateFixed?Math.min(Math.max((1-(days/365))*100,2),98):
+                 d.daysFrom?Math.min(Math.max(((d.daysFrom-days)/d.daysFrom)*100,2),98):2;
+      const dateLabel=d.dateFixed?new Date(d.dateFixed).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'}).toUpperCase():`~${d.daysFrom}D FROM INCORP`;
+      const daysLabel=d.dateFixed?days+'d':'?d';
+      return`<div style="background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:11px 13px;position:relative;overflow:hidden">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:${cv}"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="font-family:var(--mn);font-size:6px;color:var(--t3);letter-spacing:1px">${d.system} · ${d.name}</div>
+          <div style="font-family:var(--mn);font-size:6px;padding:1px 5px;border-radius:2px;background:rgba(0,0,0,.3);color:${cv}">${cls==='rd'?'URGENT':cls==='go'?'WATCH':cls==='gn'?'OK':'FUTURE'}</div>
+        </div>
+        <div style="font-family:var(--mn);font-size:22px;font-weight:700;color:${cv};line-height:1;margin-bottom:1px">${daysLabel}</div>
+        <div style="font-size:10px;color:var(--t2);margin-bottom:3px;line-height:1.4">${d.desc}</div>
+        <div style="font-family:var(--mn);font-size:6px;color:var(--t3);margin-bottom:${d.penalty?'2px':'6px'}">${dateLabel}</div>
+        ${d.penalty?`<div style="font-family:var(--mn);font-size:6px;color:var(--rd);margin-bottom:6px">⚠ ${d.penalty}</div>`:''}
+        <div style="height:2px;background:var(--s3);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${Math.round(pct)}%;background:${cv};border-radius:2px;transition:width 1.2s ease"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  renderPriorities();
+  renderDeadlines();
+
+  window.updateIncorpDate=function(isoDate){
+    DEADLINES.forEach(d=>{
+      if(!d.dateFixed&&d.daysFrom){
+        const base=new Date(isoDate);
+        base.setDate(base.getDate()+d.daysFrom);
+        d.dateFixed=base.toISOString().split('T')[0];
+      }
+    });
+    renderDeadlines();
+  };
+})();
+</script>
     <div class="footer-links">
       <a href="https://kay887.github.io/CNX-Spend/" target="_blank">FINANCE</a>
       <a href="https://kay887.github.io/Blogging-calendar/" target="_blank">BLOG</a>

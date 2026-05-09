@@ -798,7 +798,7 @@ const STATUS_COL={
 async function fetchSa(){
   const tbl=getSaTable();
   try{
-    const rows=await sbGet(`/rest/v1/${tbl}?select=id,company_name,status,priority,temperature,solution_tag,created_at&order=created_at.desc&limit=100`);
+    const rows=await sbGet(`/rest/v1/${tbl}?select=id,name,status,priority,temperature,solution_tag,created_at&order=created_at.desc&limit=100`);
     if(!rows?.length){
       set('vt-satrk','0'); set('vt-satrk-sub','No accounts yet');
       setTicker('tk-satrk','No accounts yet');
@@ -821,7 +821,7 @@ async function fetchSa(){
     if(listEl)listEl.innerHTML=rows.slice(0,25).map(r=>{
       const sc=STATUS_COL[r.status]||'var(--t3)';
       const tmp=r.temperature==='hot'?'🔥':r.temperature==='warm'?'🌡':'❄';
-      return`<div class="lp-row"><span class="lp-name">${tmp} ${r.company_name||'—'}</span><span class="lp-tag" style="background:rgba(0,0,0,.2);color:${sc}">${r.status||'—'}</span><span class="lp-val" style="color:var(--t3)">${r.solution_tag||''}</span></div>`;
+      return`<div class="lp-row"><span class="lp-name">${tmp} ${r.name||'—'}</span><span class="lp-tag" style="background:rgba(0,0,0,.2);color:${sc}">${r.status||'—'}</span><span class="lp-val" style="color:var(--t3)">${r.solution_tag||''}</span></div>`;
     }).join('');
     sw('d-satrk-bar',Math.min(total*5,100)+'%'); set('d-satrk-pct',total+' accs'); set('d-sa-acc',total);
     const hotNames=rows.filter(r=>r.temperature==='hot').slice(0,3).map(r=>r.company_name).filter(Boolean).join(', ');
